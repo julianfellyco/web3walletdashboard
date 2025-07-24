@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web3 Wallet Dashboard - Julian Fellyco</title>
+  <meta name="description" content="Modern Web3 wallet dashboard with MetaMask integration, balance tracking, and transaction management.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          animation: {
+            'fade-in': 'fadeIn 0.8s ease-in-out',
+            'slide-up': 'slideUp 0.8s ease-out',
+            'pulse-slow': 'pulse 3s infinite',
+            'bounce-slow': 'bounce 2s infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' }
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(30px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-900 dark:to-purple-900 min-h-screen text-white">
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 w-full glass-effect z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-4">
+        <div class="text-xl font-bold flex items-center">
+          <span class="text-2xl mr-2">🔗</span>
+          Web3 Wallet Dashboard
+        </div>
+        
+        <div class="flex items-center space-x-4">
+          <button id="theme-toggle" class="p-2 rounded-lg glass-effect hover:bg-white/20 transition-colors">
+            <span class="dark:hidden">🌙</span>
+            <span class="hidden dark:inline">☀️</span>
+          </button>
+          
+          <div id="network-status" class="hidden px-3 py-1 rounded-full text-xs font-medium glass-effect">
+            <span id="network-name">Ethereum</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="pt-20 min-h-screen">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+      
+      <!-- Header Section -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl md:text-5xl font-bold mb-6 animate-fade-in">
+          <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Web3 Wallet Dashboard
+          </span>
+        </h1>
+        <p class="text-lg text-gray-300 max-w-2xl mx-auto">
+          Connect your MetaMask wallet to view balance, send transactions, and manage your crypto portfolio.
+        </p>
+      </div>
+
+      <!-- Connection State -->
+      <div id="connection-section" class="mb-8">
+        <!-- Not Connected State -->
+        <div id="not-connected" class="text-center">
+          <div class="glass-effect rounded-2xl p-8 max-w-md mx-auto">
+            <div class="text-6xl mb-4">🦊</div>
+            <h3 class="text-2xl font-bold mb-4">Connect Your Wallet</h3>
+            <p class="text-gray-300 mb-6">
+              Connect your MetaMask wallet to access your Web3 dashboard and manage your crypto assets.
+            </p>
+            <button id="connect-wallet" class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg">
+              Connect MetaMask
+            </button>
+            
+            <div class="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+              <p class="text-sm text-yellow-300">
+                <strong>Don't have MetaMask?</strong> 
+                <a href="https://metamask.io" target="_blank" class="underline hover:text-yellow-200">
+                  Install it here
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connecting State -->
+        <div id="connecting" class="hidden text-center">
+          <div class="glass-effect rounded-2xl p-8 max-w-md mx-auto">
+            <div class="animate-bounce text-4xl mb-4">🔄</div>
+            <h3 class="text-xl font-bold mb-2">Connecting...</h3>
+            <p class="text-gray-300">Please check MetaMask and approve the connection.</p>
+          </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="connection-error" class="hidden text-center">
+          <div class="glass-effect rounded-2xl p-8 max-w-md mx-auto">
+            <div class="text-4xl mb-4">❌</div>
+            <h3 class="text-xl font-bold mb-2">Connection Failed</h3>
+            <p id="error-message" class="text-gray-300 mb-4">Unable to connect to MetaMask</p>
+            <button id="retry-connection" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wallet Dashboard (Hidden until connected) -->
+      <div id="wallet-dashboard" class="hidden animate-fade-in">
+        
+        <!-- Wallet Info Card -->
+        <div class="glass-effect rounded-2xl p-6 md:p-8 mb-8">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+              <h2 class="text-2xl font-bold mb-2">Your Wallet</h2>
+              <div class="flex items-center space-x-2">
+                <span class="text-gray-300">Address:</span>
+                <code id="wallet-address" class="bg-black/20 px-2 py-1 rounded text-sm">0x...</code>
+                <button id="copy-address" class="text-blue-400 hover:text-blue-300 transition-colors" title="Copy address">
+                  📋
+                </button>
+              </div>
+            </div>
+            
+            <button id="disconnect-wallet" class="mt-4 md:mt-0 text-red-400 hover:text-red-300 transition-colors px-4 py-2 rounded-lg glass-effect">
+              Disconnect
+            </button>
+          </div>
+          
+          <!-- Balance Display -->
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="text-center md:text-left">
+              <div class="text-sm text-gray-400 mb-1">ETH Balance</div>
+              <div id="eth-balance" class="text-3xl md:text-4xl font-bold">0.0000</div>
+              <div id="eth-usd-value" class="text-gray-400">$0.00 USD</div>
+            </div>
+            
+            <div class="flex justify-center md:justify-end">
+              <div class="glass-effect rounded-xl p-4 text-center">
+                <div class="text-2xl mb-2">⚡</div>
+                <div class="text-sm text-gray-400">Network</div>
+                <div id="current-network" class="font-semibold">Ethereum</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions Section -->
+        <div class="grid md:grid-cols-2 gap-8 mb-8">
+          
+          <!-- Send Transaction -->
+          <div class="glass-effect rounded-2xl p-6">
+            <h3 class="text-xl font-bold mb-4 flex items-center">
+              <span class="text-2xl mr-2">💸</span>
+              Send ETH
+            </h3>
+            
+            <form id="send-form" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Recipient Address</label>
+                <input type="text" id="recipient-address" placeholder="0x..." 
+                       class="w-full px-4 py-3 rounded-lg glass-effect text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium mb-2">Amount (ETH)</label>
+                <input type="number" id="send-amount" placeholder="0.001" step="0.0001" min="0"
+                       class="w-full px-4 py-3 rounded-lg glass-effect text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              </div>
+              
+              <button type="submit" id="send-button" 
+                      class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                Send Transaction
+              </button>
+            </form>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="glass-effect rounded-2xl p-6">
+            <h3 class="text-xl font-bold mb-4 flex items-center">
+              <span class="text-2xl mr-2">⚡</span>
+              Quick Actions
+            </h3>
+            
+            <div class="space-y-3">
+              <button id="refresh-balance" class="w-full bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2">
+                <span>🔄</span>
+                <span>Refresh Balance</span>
+              </button>
+              
+              <button id="view-etherscan" class="w-full bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-white py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2">
+                <span>🔍</span>
+                <span>View on Etherscan</span>
+              </button>
+              
+              <button id="add-token" class="w-full bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-white py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2">
+                <span>➕</span>
+                <span>Add Token</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="glass-effect rounded-2xl p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold flex items-center">
+              <span class="text-2xl mr-2">📋</span>
+              Recent Transactions
+            </h3>
+            <button id="refresh-transactions" class="text-blue-400 hover:text-blue-300 transition-colors">
+              🔄 Refresh
+            </button>
+          </div>
+          
+          <div id="transactions-loading" class="text-center py-8">
+            <div class="animate-spin text-2xl mb-2">⏳</div>
+            <p class="text-gray-400">Loading transactions...</p>
+          </div>
+          
+          <div id="transactions-list" class="space-y-3">
+            <!-- Transactions will be loaded here -->
+          </div>
+          
+          <div id="no-transactions" class="hidden text-center py-8">
+            <div class="text-4xl mb-2">📝</div>
+            <p class="text-gray-400">No recent transactions found</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Transaction Status Modal -->
+      <div id="transaction-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-60 hidden">
+        <div class="glass-effect rounded-2xl p-6 m-4 max-w-md w-full">
+          <div class="text-center">
+            <div id="tx-status-icon" class="text-4xl mb-4">⏳</div>
+            <h3 id="tx-status-title" class="text-xl font-bold mb-2">Processing Transaction</h3>
+            <p id="tx-status-message" class="text-gray-300 mb-4">Please wait while your transaction is processed...</p>
+            
+            <div id="tx-hash-section" class="hidden mb-4">
+              <p class="text-sm text-gray-400 mb-2">Transaction Hash:</p>
+              <code id="tx-hash" class="bg-black/20 px-2 py-1 rounded text-xs break-all"></code>
+            </div>
+            
+            <button id="close-tx-modal" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="text-center py-6 mt-12">
+    <p class="text-white/70">
+      Built with ❤️ by <strong>Julian Fellyco</strong> | Powered by Ethereum & MetaMask
+    </p>
+  </footer>
+
+  <!-- Web3 Library -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@4.2.2/dist/web3.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
